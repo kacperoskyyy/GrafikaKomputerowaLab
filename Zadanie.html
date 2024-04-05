@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>Unlit Spiral and Cone Example</title>
+
+<script src="glsim.js"></script>
+
+<script>
+
+    let rotateX = 15;
+    let rotateY = -15;
+    let rotateZ = 0;
+    let currentShape = 'spiral';
+    
+    function spiral() {
+    glColor3f(0.5, 0.5, 0.5);
+        glLineWidth(10.0);
+    glBegin(GL_LINE_STRIP);
+    const numCoils = 8;  
+    const numPointsPerCoil = 100; 
+    const coilRadius = 0.1; 
+    const coilSpacing = 0.1; 
+    
+    for (let i = 0; i <= numCoils * 2 * Math.PI; i += (2 * Math.PI) / numPointsPerCoil) {
+        const x = coilRadius * Math.cos(i); 
+        const y = coilRadius * Math.sin(i); 
+        const z = (i / (2 * Math.PI)) * coilSpacing; 
+        glVertex3f(x, y, z);
+    }
+    glEnd();
+}
+
+
+
+
+    
+ function cone(height) {  
+    const numVertices = 12; 
+    const angle = (2 * Math.PI) / numVertices;
+
+    glColor3f(0, 1, 0); 
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3f(0, 0, 0);
+    for (let i = -1; i < numVertices; i++) {
+        const x = Math.cos(angle * i) * 0.5;
+        const y = Math.sin(angle * i) * 0.5;
+        glVertex3f(x, y, 0);
+    }
+    glEnd();
+
+    glColor3f(1, 0, 0); 
+    glBegin(GL_TRIANGLES);
+    for (let i = 0; i < numVertices; i++) {
+        const x1 = Math.cos(angle * i) * 0.5;
+        const y1 = Math.sin(angle * i) * 0.5;
+        const x2 = Math.cos(angle * ((i + 1) % numVertices)) * 0.5;
+        const y2 = Math.sin(angle * ((i + 1) % numVertices)) * 0.5;
+        const x3 = 0;
+        const y3 = 0;
+        glVertex3f(x1, y1, 0);
+        glVertex3f(x2, y2, 0);
+        glVertex3f(x3, y3, height);
+    }
+    glEnd();
+}
+
+
+
+
+
+
+
+
+
+    function display() {
+
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                
+        glLoadIdentity();
+        glRotatef(rotateZ,0,0,1);
+        glRotatef(rotateY,0,1,0);
+        glRotatef(rotateX,1,0,0);
+        
+        if (currentShape === 'spiral') {
+            spiral();
+        } else if (currentShape === 'cone') {
+            cone(1);
+        }
+        
+    }
+    
+    function initGL() {
+        glMatrixMode(GL_PROJECTION);
+        glOrtho(-1, 1, -1, 1, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glEnable(GL_DEPTH_TEST);
+        glClearColor(0, 0, 0, 1);
+    }
+    
+    function doKeyDown(evt) {
+        let key = evt.keyCode;
+        if ( key == 37 )
+           rotateY -= 15;
+        else if ( key == 39 )
+           rotateY += 15;
+        else if ( key == 40)
+           rotateX += 15;
+        else if ( key == 38 )
+           rotateX -= 15;
+        else if ( key == 33 )
+           rotateZ += 15;
+        else if ( key == 34 )
+           rotateZ -= 15;
+        else if ( key == 36 )
+           rotateX = rotateY = rotateZ = 0;
+        else if (key == 49)
+            currentShape = 'spiral';
+        else if (key == 50)
+            currentShape = 'cone';
+        
+        if (key >=34 && key <= 40) {
+            evt.preventDefault();
+        }
+        display();
+    }
+    
+    function init() {
+        try {
+            glsimUse("glcanvas");
+        }
+        catch (e) {
+            document.getElementById("canvas-holder").innerHTML =
+                "Sorry, an error occured:<br>" + e;
+            return;
+        }
+        document.onkeydown = doKeyDown;
+        initGL();
+        display();
+    }
+
+</script>
+
+</head>
+
+<body onload="init()">
+
+<h3>A Simple Unlit Spiral and Cone in OpenGL 1.1</h3>
+
+<p>(Rotate using arrow keys, page up, page down, and home keys.)</p>
+<p>Press "1" to draw a spiral and "2" to draw a cone.</p>
+
+<noscript>
+<p><b>Sorry, this page requires JavaScript!</b></p>
+</noscript>
+
+<div id="canvas-holder">
+<canvas id="glcanvas" width="500" height="500"></canvas>
+</div>
+
+</body>
+</html>
