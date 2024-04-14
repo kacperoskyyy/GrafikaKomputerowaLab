@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple 3D Scene</title>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script>
+
+        var materialProperties = [
+            [ /* 8, 19 - "red plastic" */   0.0, 0.0, 0.0, 1.0, 0.5, 0.0, 0.0, 1.0, 0.7, 0.6, 0.6, 1.0, .25*128 ],
+        ];
+        
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Dodanie światła ambient
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Kolor: biały, Intensywność: 0.7
+        scene.add(ambientLight);
+
+        // Dodanie światła punktowego (o kształcie kuli)
+        const pointLight = new THREE.PointLight(0xffffff, 1.5); // Kolor: biały, Intensywność: 1.5
+        pointLight.position.set(0, 10, 0); // Ustawienie pozycji światła
+        scene.add(pointLight);
+
+        // Dodanie światła kierunkowego
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5); // Kolor: biały, Intensywność: 0.5
+        directionalLight.position.set(1, 1, 1); // Ustawienie pozycji światła
+        scene.add(directionalLight);
+
+        const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8); // Kolor: biały, Intensywność: 0.5
+        directionalLight1.position.set(2, 2,-2); // Ustawienie pozycji światła
+        scene.add(directionalLight1);
+
+        // Zmienne do geometrii
+        let sides = 12;
+        let radius = 6;
+        let height = 11;
+        let stageWidth = 20;
+        let stageDepth = 20;
+        let stageHeight = 0.1;
+
+        const stageGeometry = new THREE.BoxGeometry(stageWidth, stageHeight, stageDepth);
+        const stageMaterial = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
+        const stage = new THREE.Mesh(stageGeometry, stageMaterial);
+        scene.add(stage);
+
+        const pyramidGeometry = new THREE.CylinderGeometry(0, radius, height, sides);
+        const blackPlasticProps = materialProperties[0]; // Pobieramy właściwości dla "black plastic"
+        const pyramidMaterial = new THREE.MeshPhongMaterial({
+            color: new THREE.Color(blackPlasticProps[0], blackPlasticProps[1], blackPlasticProps[2]),
+            specular: new THREE.Color(blackPlasticProps[4], blackPlasticProps[5], blackPlasticProps[6]),
+            shininess: blackPlasticProps[12]
+        });
+        const pyramid = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
+        pyramid.position.y = height / 2 + stageHeight / 2; // Pozycja ostrosłupa, tak aby podstawa stykała się z platformą
+        scene.add(pyramid);
+
+        camera.position.set(0, 5, 15); // Zmieniona pozycja kamery
+        camera.lookAt(0, height / 2 + stageHeight / 2, 0); // Zmieniony punkt patrzenia kamery
+
+        let rotateY = 0;
+        let dragging = false;
+        let prevX = 0;
+
+        function onMouseMove(event) {
+            if (dragging) {
+                const x = event.clientX;
+                const dx = x - prevX;
+                rotateY += dx / 7;
+                prevX = x;
+                render();
+            }
+        }
+
+        function onMouseDown(event) {
+            if (!dragging) {
+                prevX = event.clientX;
+                dragging = true;
+                window.addEventListener('mousemove', onMouseMove);
+            }
+        }
+
+        function onMouseUp(event) {
+            dragging = false;
+            window.removeEventListener('mousemove', onMouseMove);
+        }
+
+        renderer.domElement.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mouseup', onMouseUp);
+
+        function render() {
+            requestAnimationFrame(render);
+            camera.position.x = Math.sin(rotateY * Math.PI / 180) * 40;
+            camera.position.z = Math.cos(rotateY * Math.PI / 180) * 40;
+            camera.lookAt(0, height / 2 + stageHeight / 2, 0); // Ustawienie punktu patrzenia kamery
+            renderer.render(scene, camera);
+        }
+
+        render();
+    </script>
+</body>
+</html>
