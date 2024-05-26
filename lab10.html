@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biała wieżą w Three.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 5;
+        controls.maxDistance = 50;
+        controls.maxPolarAngle = Math.PI / 2;
+
+        function createRook() {
+            const rookGroup = new THREE.Group();
+
+            const whiteMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+
+            const baseGeometry = new THREE.CylinderGeometry(2.5, 2, 1, 32);
+            const base = new THREE.Mesh(baseGeometry, whiteMaterial);
+            rookGroup.add(base);
+
+            const bodyGeometry = new THREE.CylinderGeometry(1.5, 2.5, 5, 32);
+            const body = new THREE.Mesh(bodyGeometry, whiteMaterial);
+            body.position.y = 3;
+            rookGroup.add(body);
+
+            const topRingGeometry = new THREE.CylinderGeometry(2, 1.5, 1, 32);
+            const topRing = new THREE.Mesh(topRingGeometry, whiteMaterial);
+            topRing.position.y = 6;
+            rookGroup.add(topRing);
+
+            const crenellationGeometry = new THREE.BoxGeometry(0.5, 1, 1);
+            for (let i = 0; i < 8; i++) {
+                const crenellation = new THREE.Mesh(crenellationGeometry, whiteMaterial);
+                crenellation.position.set(1.5 * Math.cos((i / 8) * 2 * Math.PI), 7, 1.5 * Math.sin((i / 8) * 2 * Math.PI));
+                crenellation.rotation.y = (i / 8) * 2 * Math.PI;
+                rookGroup.add(crenellation);
+            }
+
+            return rookGroup;
+        }
+
+        const rook = createRook();
+        scene.add(rook);
+
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(10, 10, 10).normalize();
+        scene.add(directionalLight);
+
+        camera.position.z = 15;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
